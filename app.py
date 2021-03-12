@@ -1,31 +1,22 @@
-from flask import Flask, request
-from twilio.twiml.messaging_response import MessagingResponse
+
+from slack_sdk.webhook import WebhookClient
+from flask import Flask, request, make_response
 
 
 app = Flask(__name__)
 
 
-GOOD_BOY_URL = (
-    "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?ixlib=rb-1.2.1"
-    "&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80"
-)
+@app.route("/slack/events", methods=["POST"])
+def slack_app():
+    # Handle a slash command invocation
+    if "command" in request.form \
+            and request.form["command"] == "/reply-this":
+        response_url = request.form["response_url"]
+        text = request.form["text"]
+        webhook = WebhookClient(response_url)
+        # Send a reply in the channel
+        response = webhook.send(text=f"You said '{text}'")
+        # Acknowledge this request
+        return make_response("", 200)
 
-
-@app.route("/whatsapp", methods=["GET", "POST"])
-def reply_whatsapp():
-
-    try:
-        num_media = int(request.values.get("NumMedia"))
-    except (ValueError, TypeError):
-        return "Invalid request: invalid or missing NumMedia parameter", 400
-    response = MessagingResponse()
-    if not num_media:
-        msg = response.message("Send us an image!")
-    else:
-        msg = response.message("Thanks for the image. Here's one for you!")
-        msg.media(GOOD_BOY_URL)
-    return str(response)
-
-
-if __name__ == "__main__":
-    app.run()
+    return make_response("", 404)
