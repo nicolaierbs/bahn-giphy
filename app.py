@@ -1,6 +1,7 @@
 
 from slack_sdk.webhook.client import WebhookClient
 from flask import Flask, request, make_response
+import bahnconnection_v5
 
 
 app = Flask(__name__)
@@ -16,7 +17,9 @@ def slack_app():
         text = request.form["text"]
         webhook = WebhookClient(response_url)
         # Send a reply in the channel
-        response = webhook.send(text=f"You said '{text}'")
+        stations = text.split(' nach ')
+        connections = bahnconnection_v5.connections(stations[0], stations[1])
+        response = webhook.send(text=connections)
         # Acknowledge this request
         return make_response("", 200)
 
