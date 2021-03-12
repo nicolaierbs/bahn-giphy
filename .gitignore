@@ -4,3 +4,5 @@ parameters.ini
 *.pyc
 xkcd-script.ttf
 .images
+images
+output
