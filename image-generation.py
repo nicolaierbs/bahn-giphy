@@ -43,9 +43,10 @@ class ImageState:
 
 
 class FrameState:
-    def __init__(self, bg, fg):
+    def __init__(self, bg, fg, text=None):
         self.background = bg
         self.foreground_objs = fg
+        self.text = text
 
     def get_bg(self):
         return self.background
@@ -57,11 +58,15 @@ class FrameState:
         self.foreground_objs.append(fg_obj)
 
     def generate(self):
+        font = ImageFont.truetype(font_path, 32)
         background = Image.open(self.background.get_file_name())
         image = background
         for fg_obj in self.foreground_objs:
             foreground_obj = Image.open(fg_obj.get_file_name())
             image.paste(foreground_obj, fg_obj.get_pos(), mask=foreground_obj)
+        if self.text:
+            draw = ImageDraw.Draw(image)
+            draw.text((150, 60), self.text, (255, 100, 100), font=font)
         return image
 
 
@@ -85,6 +90,12 @@ class GIFGenerator:
         for i, image in enumerate(images):
             frame = self.get_frame(transition.start_time + i)
             frame.add_fg_obj(image)
+
+    def add_text(self, text, time):
+        start, duration = time
+        for t in range(duration):
+            frame = self.get_frame(start + t)
+            frame.text = text
 
     def generate_gif(self, fps = 50, file_name="output/test.gif"):
         frames = []
@@ -116,4 +127,5 @@ for i in range(40):
     gif.add_frame(reuse_last=True)
 gif.add_foreground_object(ImageTransition('images/train_ice2.png', (-500,180), (500,180), 10, 0))
 gif.add_foreground_object(ImageTransition('images/log.png', (200,180), (200,180), 10, 10))
+gif.add_text("Welcome!", (10,5))
 gif.generate_gif()
