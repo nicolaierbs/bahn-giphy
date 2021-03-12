@@ -5,26 +5,88 @@ import os.path
 import requests
 import copy
 
+###
+#
+#  Image and Movement
+#
+###
 
-class ImageTransition:
-    def __init__(self, file_name, start_pos, end_pos, num_frames, start_frame):
-        self.file_name = file_name
+
+class Bounce:
+    def __init__(self, pos_one, pos_two, time, freq):
+        self.pos_one = pos_one
+        self.pos_two = pos_two
+        self.time = time
+        self.freq = freq
+
+    def get_positions(self):
+        positions = []
+        time_one_way = int(self.time / (2*self.freq))
+        for j in range(self.freq):
+            up = Translation(self.pos_one, self.pos_two, time_one_way)
+            down = Translation(self.pos_two, self.pos_one, time_one_way)
+            positions += up.get_positions()
+            positions += down.get_positions()
+        return positions
+
+
+class Translation:
+    def __init__(self, start_pos, end_pos, time):
         self.start_pos = start_pos
         self.end_pos = end_pos
-        self.time = num_frames
-        self.start_time = start_frame
+        self.time = time
 
-    def get_images(self):
+    def get_positions(self):
+        positions = []
         start_x, start_y = self.start_pos
         end_x, end_y = self.end_pos
         step_x, step_y = (end_x - start_x) / self.time, (end_y - start_y) / self.time
-        images = []
         for i in range(self.time):
-            images.append(ImageState(self.file_name, (int(start_x + i * step_x), int(start_y + i * step_y))))
-        return images
+            positions.append((int(start_x + (i + 1) * step_x), int(start_y + (i + 1) * step_y)))
+        return positions
 
 
 class ImageState:
+    def __init__(self, file_name, start_pos, num_frames):
+        self.file_name = file_name
+        self.start_pos = start_pos
+        self.time = num_frames
+        self.movement = {}
+        self.movement_start_time = 0
+        self.movement_start_pos = start_pos
+
+    def add_movement(self, end_pos, time, start_time_delta=0, mode='linear', freq=None):
+        if mode == 'linea':
+            movement = Translation(self.movement_start_pos, end_pos, time)
+        elif mode == 'bounce':
+            movement = Bounce(self.movement_start_pos, end_pos, time, freq)
+        self.movement[self.movement_start_time + start_time_delta] = movement
+        self.movement_start_time += time + start_time_delta
+        self.movement_start_pos = end_pos
+
+    def get_image_state_frame(self):
+        images = []
+        positions = [self.start_pos]
+        print(self.movement)
+        for i in range(self.time):
+            if i in self.movement:
+                positions = self.movement[i].get_positions()
+            if len(positions) > 1:
+                position = positions[0]
+                del positions[0]
+            else:
+                position = positions[0]
+            images.append(ImageStateFrame(self.file_name, position))
+        return images
+
+
+###
+#
+#  GIF
+#
+###
+
+class ImageStateFrame:
     def __init__(self, file_name, position):
         self.file_name = file_name
         self.pos = position
@@ -43,9 +105,12 @@ class ImageState:
 
 
 class FrameState:
-    def __init__(self, bg, fg, text=None):
+    def __init__(self, bg, fg=None, text=None):
         self.background = bg
-        self.foreground_objs = fg
+        if fg:
+            self.foreground_objs = fg
+        else:
+            self.foreground_objs = []
         self.text = text
 
     def get_bg(self):
@@ -71,11 +136,14 @@ class FrameState:
 
 
 class GIFGenerator:
-    def __init__(self):
+    def __init__(self, gif_length=None, bg=None):
         self.type = None
         self.frames = []
+        if gif_length:
+            for _ in range(gif_length):
+                self.add_frame(bg=bg)
 
-    def add_frame(self, bg=None, fg=None, reuse_last=True):
+    def add_frame(self, bg=None, fg=None, reuse_last=False):
         if reuse_last:
             bg = self.get_frame().get_bg()
             fg = self.get_frame().get_fg()
@@ -85,10 +153,10 @@ class GIFGenerator:
     def get_frame(self, pos=-1):
         return self.frames[pos]
 
-    def add_foreground_object(self, transition):
-        images = transition.get_images()
+    def add_foreground_object(self, obj, start_frame):
+        images = obj.get_image_state_frame()
         for i, image in enumerate(images):
-            frame = self.get_frame(transition.start_time + i)
+            frame = self.get_frame(start_frame + i)
             frame.add_fg_obj(image)
 
     def add_text(self, text, time):
@@ -97,12 +165,12 @@ class GIFGenerator:
             frame = self.get_frame(start + t)
             frame.text = text
 
-    def generate_gif(self, fps = 50, file_name="output/test.gif"):
+    def generate_gif(self, output_path="output/", file_name="test.gif"):
         frames = []
         for frame in self.frames:
             frames.append(frame.generate())
-        imageio.mimsave(file_name, frames)
-        optimize(file_name)
+        imageio.mimsave(output_path + file_name, frames)
+        optimize(output_path + file_name)
 
 
 def check_font(path):
@@ -116,16 +184,14 @@ def check_font(path):
 font_path = 'xkcd-script.ttf'
 check_font(font_path)
 
-gif = GIFGenerator()
-
-background = ImageState('images/landscape-winter.jpg', None)
-background = ImageState('images/landscape-sommer.jpg', None)
-foreground = ImageState('images/train_ice2.png', (-300,180))
-
-gif.add_frame(background, [], reuse_last=False)
-for i in range(40):
-    gif.add_frame(reuse_last=True)
-gif.add_foreground_object(ImageTransition('images/train_ice2.png', (-500,180), (500,180), 10, 0))
-gif.add_foreground_object(ImageTransition('images/log.png', (200,180), (200,180), 10, 10))
-gif.add_text("Welcome!", (10,5))
+background = ImageStateFrame('images/landscape-winter.jpg', None)
+background = ImageStateFrame('images/landscape-sommer.jpg', None)
+foreground = ImageStateFrame('images/train_ice2.png', (-300,180))
+gif = GIFGenerator(gif_length=50, bg=background)
+train = ImageState('images/train_ice2.png', (50,180), 50)
+#train.add_movement((500,100), 10, 10)
+train.add_movement((0,20), 30, 10, mode='bounce', freq=4)
+gif.add_foreground_object(train, 0)
+gif.add_foreground_object(ImageState('images/log.png', (200,180), 10), 10)
+gif.add_text("Welcome!", (10, 5))
 gif.generate_gif()
