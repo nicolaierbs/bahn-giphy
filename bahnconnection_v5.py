@@ -1,12 +1,7 @@
-import configparser
 import requests
 from datetime import datetime
 
-config_section = 'V5'
-params = configparser.ConfigParser()
-params.read('parameters.ini')
-
-base_url = params.get(config_section, 'schema') + params.get(config_section, 'host')
+base_url = 'https://host=v5.db.transport.rest/'
 
 
 def station(name):
