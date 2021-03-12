@@ -1,5 +1,5 @@
 
-from slack_sdk.webhook import WebhookClient
+from slack_sdk.webhook.client import WebhookClient
 from flask import Flask, request, make_response
 
 
