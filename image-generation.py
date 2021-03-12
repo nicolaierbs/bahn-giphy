@@ -184,14 +184,20 @@ def check_font(path):
 font_path = 'xkcd-script.ttf'
 check_font(font_path)
 
+###
+# Design you gif here!
+###
+
 background = ImageStateFrame('images/landscape-winter.jpg', None)
 background = ImageStateFrame('images/landscape-sommer.jpg', None)
-foreground = ImageStateFrame('images/train_ice2.png', (-300,180))
 gif = GIFGenerator(gif_length=50, bg=background)
+
 train = ImageState('images/train_ice2.png', (50,180), 50)
 #train.add_movement((500,100), 10, 10)
 train.add_movement((0,20), 30, 10, mode='bounce', freq=4)
 gif.add_foreground_object(train, 0)
-gif.add_foreground_object(ImageState('images/log.png', (200,180), 10), 10)
+
+log = ImageState('images/log.png', (200,180), 10)
+gif.add_foreground_object(log, 10)
 gif.add_text("Welcome!", (10, 5))
 gif.generate_gif()
