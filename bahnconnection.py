@@ -17,22 +17,23 @@ def journeys(start_id, destination_id):
     return response
 
 
-def clean_leg(leg):
-    if not leg['departure']:
-        return None
-    journey = dict()
-    journey['start'] = leg['origin']['name']
-    journey['destination'] = leg['destination']['name']
-    journey['departure'] = leg['departure']
-    journey['planned_departure'] = leg['plannedDeparture']
-    journey['delay'] = leg['departureDelay']
-    journey['platform'] = leg['departurePlatform']
-    journey['train'] = leg['line']['name']
-    return journey
+def board_information(all_journeys):
+    board = dict()
+    board['trains'] = list()
+    for leg in [journey['legs'][0] for journey in all_journeys]:
+        board['start'] = leg['origin']['name']
+        board['destination'] = leg['destination']['name']
+        if leg['departure']:
+            train = dict()
+            train['planned_departure'] = leg['plannedDeparture']
+            train['delay'] = leg['departureDelay']
+            train['platform'] = leg['departurePlatform']
+            train['train'] = leg['line']['name']
+            board['trains'].append(train)
+    return board
 
 
 def connections(start_name, destination_name):
     start_id = station(start_name)
     destination_id = station(destination_name)
-    filtered_journeys = [clean_leg(journey['legs'][0]) for journey in journeys(start_id, destination_id)]
-    return [filtered_journey for filtered_journey in filtered_journeys if filtered_journey]
+    return board_information(journeys(start_id, destination_id))
