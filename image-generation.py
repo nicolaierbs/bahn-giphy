@@ -55,7 +55,7 @@ class ImageState:
         self.movement_start_pos = start_pos
 
     def add_movement(self, end_pos, time, start_time_delta=0, mode='linear', freq=None):
-        if mode == 'linea':
+        if mode == 'linear':
             movement = Translation(self.movement_start_pos, end_pos, time)
         elif mode == 'bounce':
             movement = Bounce(self.movement_start_pos, end_pos, time, freq)
@@ -174,20 +174,45 @@ class GIFGenerator:
 
 font_path = 'fonts/DB Sans Regular.otf'
 
+
+def rolling_train(train, num_frames):
+    # TODO This can probably be automated
+    if train == 'bahn_angela':
+        train = ImageState('images/trains/' + train + '.png', (-620, 250), num_frames=num_frames)
+        train.add_movement((610, 250), time=num_frames, start_time_delta=0, mode='linear')
+        # train.add_movement((0,20), 30, 10, mode='bounce', freq=4)
+        return train
+    elif train == 'ice_comic':
+        train = ImageState('images/trains/' + train + '.png', (-570, 170), num_frames=num_frames)
+        train.add_movement((520, 170), time=num_frames, start_time_delta=0, mode='linear')
+        return train
+    elif train == 'rb_vbb':
+        train = ImageState('images/trains/' + train + '.png', (-1200, 270), num_frames=num_frames)
+        train.add_movement((550, 270), time=num_frames, start_time_delta=0, mode='linear')
+        return train
+    elif train == 're_vbb':
+        train = ImageState('images/trains/' + train + '.png', (-2500, 270), num_frames=num_frames)
+        train.add_movement((580, 270), time=num_frames, start_time_delta=0, mode='linear')
+        return train
+    elif train == 'sbahn_vbb':
+        train = ImageState('images/trains/' + train + '.png', (-1500, 270), num_frames=num_frames)
+        train.add_movement((580, 270), time=num_frames, start_time_delta=0, mode='linear')
+        return train
+    else:
+        return None
+
+
 ###
 # Design you gif here!
 ###
-
-background = ImageStateFrame('images/landscape-winter.jpg', None)
+background = ImageStateFrame('images/background/landscape-summer.jpg', None)
 # background = ImageStateFrame('images/landscape-summer.jpg', None)
 gif = GIFGenerator(gif_length=50, bg=background)
 
-train = ImageState('images/train_ice2.png', (50,180), 50)
-# train.add_movement((500,100), 10, 10)
-# train.add_movement((0,20), 30, 10, mode='bounce', freq=4)
-gif.add_foreground_object(train, 0)
+
+gif.add_foreground_object(rolling_train('sbahn_vbb', num_frames=50), 0)
 
 # log = ImageState('images/log.png', (200,180), 10)
 # gif.add_foreground_object(log, 10)
-gif.add_text("Welcome!", (10, 5))
+# gif.add_text("Welcome!", (10, 5))
 gif.generate_gif()
