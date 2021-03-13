@@ -18,8 +18,8 @@ def slack_app():
         webhook = WebhookClient(response_url)
         # Send a reply in the channel
         stations = text.split(' nach ')
-        connections = bahnconnection_v5.connections('Darmstadt', 'Frankfurt')
-        response = webhook.send(text=str(connections) + str(text.split(' nach ')))
+        connections = bahnconnection_v5.connections(stations[0], stations[1])
+        response = webhook.send(text=str(connections))
         # Acknowledge this request
         return make_response("", 200)
 
