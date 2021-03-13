@@ -106,13 +106,13 @@ class ImageStateFrame:
 
 
 class FrameState:
-    def __init__(self, bg, fg=None, text=None):
+    def __init__(self, bg, fg=None, messages=None):
         self.background = bg
         if fg:
             self.foreground_objs = fg
         else:
             self.foreground_objs = []
-        self.text = text
+        self.messages = messages
 
     def get_bg(self):
         return self.background
@@ -124,15 +124,16 @@ class FrameState:
         self.foreground_objs.append(fg_obj)
 
     def generate(self):
-        font = ImageFont.truetype(font_path, 32)
+        font = ImageFont.truetype(font_path, 22)
         background = Image.open(self.background.get_file_name())
         image = background
         for fg_obj in self.foreground_objs:
             foreground_obj = Image.open(fg_obj.get_file_name())
             image.paste(foreground_obj, fg_obj.get_pos(), mask=foreground_obj)
-        if self.text:
-            draw = ImageDraw.Draw(image)
-            draw.text((150, 60), self.text, (255, 100, 100), font=font)
+        if self.messages:
+            for message in self.messages:
+                draw = ImageDraw.Draw(image)
+                draw.text(message['position'], message['text'], font=font, fill=(255, 255, 255, 0))
         return image
 
 
@@ -160,11 +161,12 @@ class GIFGenerator:
             frame = self.get_frame(start_frame + i)
             frame.add_fg_obj(image)
 
-    def add_text(self, text, time):
-        start, duration = time
-        for t in range(duration):
-            frame = self.get_frame(start + t)
-            frame.text = text
+    def add_message(self, message, start_frame=0, num_frames=0):
+        for t in range(num_frames):
+            frame = self.get_frame(start_frame + t)
+            if not frame.messages:
+                frame.messages = list()
+            frame.messages.append(message)
 
     def generate_gif(self, output_path="output/", file_name=None):
         if not file_name:
@@ -206,7 +208,7 @@ def rolling_train(train, num_frames):
         return None
 
 
-def create(scene, train=None, num_frames=50, connections=True):
+def create(scene, train=None, num_frames=50, connections=None):
     background = ImageStateFrame('images/background/' + scene + '.jpg', None)
     gif = GIFGenerator(gif_length=num_frames, bg=background)
 
@@ -215,7 +217,7 @@ def create(scene, train=None, num_frames=50, connections=True):
     if connections:
         table = ImageState('images/table.png', (280, 10), num_frames=num_frames)
         gif.add_foreground_object(table, 0)
-        gif.add_text("Welcome!", (10, 5))
+        gif.add_message(message={'text': 'Welcome!', 'position': (280, 10)}, start_frame=0, num_frames=50)
 
     # log = ImageState('images/log.png', (200,180), 10)
     # gif.add_foreground_object(log, 10)
