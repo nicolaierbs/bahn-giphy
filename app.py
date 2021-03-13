@@ -1,7 +1,7 @@
 
 from slack_sdk.webhook.client import WebhookClient
 from flask import Flask, request, make_response
-import bahnconnection_v5
+import bahnconnection
 
 
 app = Flask(__name__)
@@ -19,7 +19,7 @@ def slack_app():
         # Send a reply in the channel
         stations = text.split(' nach ')
         if len(stations) > 1:
-            connections = bahnconnection_v5.connections(stations[0], stations[1])
+            connections = bahnconnection.connections(stations[0], stations[1])
             response = webhook.send(text=str(connections))
         else:
             response = webhook.send(text='Bitte gebe deine Anfrage in dem Muster "Bahnhof nach Bahnhof" ein.')
