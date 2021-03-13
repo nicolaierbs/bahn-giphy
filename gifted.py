@@ -2,6 +2,7 @@ import imageio
 from pygifsicle import optimize
 from PIL import Image, ImageDraw, ImageFont
 import time
+from datetime import datetime
 import copy
 
 font_path = 'fonts/DB Sans Regular.otf'
@@ -124,7 +125,7 @@ class FrameState:
         self.foreground_objs.append(fg_obj)
 
     def generate(self):
-        font = ImageFont.truetype(font_path, 22)
+        font = ImageFont.truetype(font_path, 14)
         background = Image.open(self.background.get_file_name())
         image = background
         for fg_obj in self.foreground_objs:
@@ -133,7 +134,7 @@ class FrameState:
         if self.messages:
             for message in self.messages:
                 draw = ImageDraw.Draw(image)
-                draw.text(message['position'], message['text'], font=font, fill=(255, 255, 255, 0))
+                draw.text(message['position'], message['text'], font=font, fill=message['color'])
         return image
 
 
@@ -208,7 +209,7 @@ def rolling_train(train, num_frames):
         return None
 
 
-def create(scene, train=None, num_frames=50, connections=None):
+def create(scene, train=None, num_frames=50, connections=None, text=None):
     background = ImageStateFrame('images/background/' + scene + '.jpg', None)
     gif = GIFGenerator(gif_length=num_frames, bg=background)
 
@@ -217,9 +218,33 @@ def create(scene, train=None, num_frames=50, connections=None):
     if connections:
         table = ImageState('images/table.png', (280, 10), num_frames=num_frames)
         gif.add_foreground_object(table, 0)
-        gif.add_message(message={'text': 'Welcome!', 'position': (280, 10)}, start_frame=0, num_frames=50)
+        print(connections)
+        message = {
+            'text': connections['start'] + ' --> ' + connections['destination'],
+            'position': (290, 18),
+            'color': (255, 255, 255, 0)}
+        gif.add_message(message=message, start_frame=0, num_frames=50)
+        position = (300, 50)
+        for connection in connections['trains']:
+            train_information = '{type} um {time} Uhr +{delay} min auf Gleis {platform}'.format(
+                type=connection['train'],
+                platform=connection['platform'],
+                time=connection['planned_departure'][11:16],
+                delay=connection['delay'])
+            # print(train_information)
+            message = {
+                'text': train_information,
+                'position': position,
+                'color': (255, 255, 255, 0)}
+            gif.add_message(message=message, start_frame=0, num_frames=50)
+            position = (position[0], position[1]+25)
 
-    # log = ImageState('images/log.png', (200,180), 10)
-    # gif.add_foreground_object(log, 10)
-    # gif.add_text("Welcome!", (10, 5))
+    if text:
+        message = {
+            'text': text,
+            'position': (20, 20),
+            'color': (255, 30, 30, 0)
+                  }
+        gif.add_message(message=message, start_frame=20, num_frames=30)
+
     return gif.generate_gif()
