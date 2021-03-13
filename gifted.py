@@ -1,8 +1,10 @@
 import imageio
 from pygifsicle import optimize
 from PIL import Image, ImageDraw, ImageFont
-import os.path
+import time
 import copy
+
+font_path = 'fonts/DB Sans Regular.otf'
 
 ###
 #
@@ -66,7 +68,7 @@ class ImageState:
     def get_image_state_frame(self):
         images = []
         positions = [self.start_pos]
-        print(self.movement)
+        # print(self.movement)
         for i in range(self.time):
             if i in self.movement:
                 positions = self.movement[i].get_positions()
@@ -164,15 +166,17 @@ class GIFGenerator:
             frame = self.get_frame(start + t)
             frame.text = text
 
-    def generate_gif(self, output_path="output/", file_name="test.gif"):
+    def generate_gif(self, output_path="output/", file_name=None):
+        if not file_name:
+            file_name = str(int(time.time()*1000))
+        file_name += '.gif'
+
         frames = []
         for frame in self.frames:
             frames.append(frame.generate())
         imageio.mimsave(output_path + file_name, frames)
         optimize(output_path + file_name)
-
-
-font_path = 'fonts/DB Sans Regular.otf'
+        return output_path + file_name
 
 
 def rolling_train(train, num_frames):
@@ -202,17 +206,18 @@ def rolling_train(train, num_frames):
         return None
 
 
-###
-# Design you gif here!
-###
-background = ImageStateFrame('images/background/landscape-summer.jpg', None)
-# background = ImageStateFrame('images/landscape-summer.jpg', None)
-gif = GIFGenerator(gif_length=50, bg=background)
+def create(scene, train=None, num_frames=50, connections=True):
+    background = ImageStateFrame('images/background/' + scene + '.jpg', None)
+    gif = GIFGenerator(gif_length=num_frames, bg=background)
 
+    gif.add_foreground_object(rolling_train(train, num_frames=num_frames), 0)
 
-gif.add_foreground_object(rolling_train('sbahn_vbb', num_frames=50), 0)
+    if connections:
+        table = ImageState('images/table.png', (280, 10), num_frames=num_frames)
+        gif.add_foreground_object(table, 0)
+        gif.add_text("Welcome!", (10, 5))
 
-# log = ImageState('images/log.png', (200,180), 10)
-# gif.add_foreground_object(log, 10)
-# gif.add_text("Welcome!", (10, 5))
-gif.generate_gif()
+    # log = ImageState('images/log.png', (200,180), 10)
+    # gif.add_foreground_object(log, 10)
+    # gif.add_text("Welcome!", (10, 5))
+    return gif.generate_gif()
