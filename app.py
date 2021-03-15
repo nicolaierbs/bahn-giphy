@@ -2,6 +2,7 @@ import os
 import sys
 import json
 from datetime import datetime
+import bahnconnection
 
 import requests
 from flask import Flask, request
@@ -40,7 +41,12 @@ def webhook():
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"]["text"]  # the message's text
 
-                    send_message(sender_id, "roger that!")
+                    stations = message_text.split(' nach ')
+                    if len(stations) == 2:
+                        connections = bahnconnection.connections(stations[0], stations[1])
+                        send_message(sender_id, str(connections))
+                    else:
+                        send_message(sender_id, 'Bitte gebe deine Anfrage in dem Muster "Bahnhof nach Bahnhof" ein.')
 
                 if messaging_event.get("delivery"):  # delivery confirmation
                     pass
