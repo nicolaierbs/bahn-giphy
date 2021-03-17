@@ -46,7 +46,12 @@ def webhook():
                         stations = message_text.split(' nach ')
                         if len(stations) == 2:
                             connections = bahnconnection.connections(stations[0], stations[1])
-                            send_message(sender_id, str(connections))
+                            text = 'Dein nächster Zug nach {destination} ist' \
+                                   ' um {time} Uhr auf Bahnsteig {platform}. Gute Reise!'.format(
+                                        platform=connections['trains'][0]['platform'],
+                                        time=connections['trains'][0]['planned_departure'][11:16],
+                                        destination=connections['destination'])
+                            send_message(sender_id, text)
                         else:
                             send_message(sender_id, 'Bitte gebe deine Anfrage in dem Muster "Bahnhof nach Bahnhof" ein.')
                     except KeyError:
@@ -107,14 +112,19 @@ def slack_app():
             and request.form['command'] == "/gif-ted":
         response_url = request.form['response_url']
         text = request.form['text']
-        webhook = WebhookClient(response_url)
+        slack_webhook = WebhookClient(response_url)
         # Send a reply in the channel
         stations = text.split(' nach ')
         if len(stations) > 1:
             connections = bahnconnection.connections(stations[0], stations[1])
-            response = webhook.send(text=str(connections))
+            # response = slack_webhook.send(text=str(connections))
+            text = 'Dein nächster Zug nach {destination} ist um {time} Uhr auf Bahnsteig {platform}. Gute Reise!'.format(
+                platform=connections['trains'][0]['platform'],
+                time=connections['trains'][0]['planned_departure'][11:16],
+                destination=connections['destination'])
+            response = slack_webhook.send(text=text)
         else:
-            response = webhook.send(text='Bitte gebe deine Anfrage in dem Muster "Bahnhof nach Bahnhof" ein.')
+            response = slack_webhook.send(text='Bitte gebe deine Anfrage in dem Muster "Bahnhof nach Bahnhof" ein.')
         # Acknowledge this request
         return make_response("", 200)
 
