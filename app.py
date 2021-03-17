@@ -3,9 +3,10 @@ import sys
 import json
 from datetime import datetime
 import bahnconnection
+from slack_sdk.webhook.client import WebhookClient
 
 import requests
-from flask import Flask, request
+from flask import Flask, request, make_response
 
 app = Flask(__name__)
 
@@ -96,6 +97,28 @@ def log(msg, *args, **kwargs):  # simple wrapper for logging to stdout on heroku
     except UnicodeEncodeError:
         pass  # squash logging errors in case of non-ascii text
     sys.stdout.flush()
+
+
+@app.route("/slack/commands", methods=["POST"])
+def slack_app():
+    print(request.form)
+    # Handle a slash command invocation
+    if "command" in request.form \
+            and request.form['command'] == "/gif-ted":
+        response_url = request.form['response_url']
+        text = request.form['text']
+        webhook = WebhookClient(response_url)
+        # Send a reply in the channel
+        stations = text.split(' nach ')
+        if len(stations) > 1:
+            connections = bahnconnection.connections(stations[0], stations[1])
+            response = webhook.send(text=str(connections))
+        else:
+            response = webhook.send(text='Bitte gebe deine Anfrage in dem Muster "Bahnhof nach Bahnhof" ein.')
+        # Acknowledge this request
+        return make_response("", 200)
+
+    return make_response("", 404)
 
 
 if __name__ == '__main__':
