@@ -28,13 +28,12 @@ def message_webhook(data):
                     # log(messaging_event["message"])
                     if "text" in messaging_event["message"]:
                         message_text = messaging_event["message"]["text"]  # the message's text
-                        # log("sending message from {sender} to {recipient}: {text}"
+                        log("sending message from {sender} to {recipient}: {text}"
                             .format(recipient=recipient_id, sender=sender_id, text=message_text))
 
                         try:
                             stations = message_text.split(' nach ')
                             if len(stations) == 2:
-                                log('Search connections')
                                 connections = bahnconnection.connections(stations[0], stations[1])
                                 log('Found connections: {}'.format(str(connections)))
                                 connections = bahnconnection.connections('Darmstadt', 'Frankfurt')
@@ -103,9 +102,6 @@ def log(msg, *args, **kwargs):  # simple wrapper for logging to stdout on heroku
 def send_attachment(recipient_id, attachment_type, image_data):
     params = {
         "access_token": os.environ["PAGE_ACCESS_TOKEN"]
-    }
-    headers = {
-        "Content-Type": "application/json"
     }
     data = {
         'recipient': json.dumps({
