@@ -7,20 +7,14 @@ from aiohttp import web
 import bahnconnection
 import gifted
 import configparser
-
-
-config_section = 'SLACK'
-params = configparser.ConfigParser()
-params.read('parameters.ini')
-
-token = params.get(config_section, 'token')
-
-client = WebClient(token=token)
+from slack_sdk.webhook.client import WebhookClient
+import os
 
 
 def send_gif(file):
     try:
-        response = client.files_upload(channels='#team_gif-ted', file=file)
+        slack_client = WebClient(token=os.environ['SLACK_TOKEN'])
+        response = slack_client = WebClient(token=os.environ['SLACK_TOKEN']).files_upload(channels='#team_gif-ted', file=file)
         assert response["file"]  # the uploaded file
     except SlackApiError as e:
         # You will get a SlackApiError if "ok" is False
@@ -29,14 +23,25 @@ def send_gif(file):
         print(f"Got an error: {e.response['error']}")
 
 
-scenes = ['landscape-winter']
-# scenes = ['landscape-summer', 'landscape-winter']
-trains = ['ice_comic']
-# trains = ['bahn_angela', 'ice_comic', 'rb_vbb', 're_vbb', 'sbahn_vbb']
-
-connections = bahnconnection.connections('Darmstadt', 'Frankfurt')
-
-send_gif(gifted.create(scene='landscape-summer', train='bahn_angela', num_frames=50, connections=connections, text='#dbregiodatahack21'))
-# send_gif(gifted.create(scene='landscape-winter', train='bahn_angela', num_frames=50, connections=connections, text='#dbregiodatahack21'))
-# send_gif(gifted.create(scene='landscape-winter', train='ice_comic', num_frames=50, connections=connections, text='#dbregiodatahack21'))
-# send_gif(gifted.create(scene='landscape-summer', train='re_vbb', num_frames=50, connections=connections, text='#dbregiodatahack21'))
+def webhook(form):
+    print(form)
+    # Handle a slash command invocation
+    if "command" in form \
+            and form['command'] == "/gif-ted":
+        response_url = form['response_url']
+        text = form['text']
+        slack_webhook = WebhookClient(response_url)
+        # Send a reply in the channel
+        stations = text.split(' nach ')
+        if len(stations) > 1:
+            connections = bahnconnection.connections(stations[0], stations[1])
+            # response = webhook.send(text=str(connections))
+            text = 'Dein nächster Zug nach {destination} ist um {time} Uhr auf Bahnsteig {platform}. Gute Reise!'.format(
+                platform=connections['trains'][0]['platform'],
+                time=connections['trains'][0]['planned_departure'][11:16],
+                destination=connections['destination'])
+            slack_webhook.send(text=text)
+        else:
+            slack_webhook.send(text='Bitte gebe deine Anfrage in dem Muster "Bahnhof nach Bahnhof" ein.')
+        return True
+    return False

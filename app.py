@@ -3,8 +3,7 @@ import sys
 import json
 from datetime import datetime
 import bahnconnection
-from slack_sdk.webhook.client import WebhookClient
-
+import slackbot
 import requests
 from flask import Flask, request, make_response
 
@@ -12,7 +11,7 @@ app = Flask(__name__)
 
 
 @app.route('/', methods=['GET'])
-def verify():
+def facebook_verify():
     # when the endpoint is registered as a webhook, it must echo back
     # the 'hub.challenge' value it receives in the query arguments
     if request.args.get("hub.mode") == "subscribe" and request.args.get("hub.challenge"):
@@ -24,7 +23,7 @@ def verify():
 
 
 @app.route('/', methods=['POST'])
-def webhook():
+def facebook_webhook():
 
     # endpoint for processing incoming messaging events
 
@@ -32,15 +31,15 @@ def webhook():
     log(data)  # you may not want to log every incoming message in production, but it's good for testing
 
     if data["object"] == "page":
-
         for entry in data["entry"]:
             for messaging_event in entry["messaging"]:
-
                 if messaging_event.get("message"):  # someone sent us a message
 
                     sender_id = messaging_event["sender"]["id"]        # the facebook ID of the person sending you the message
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"]["text"]  # the message's text
+                    log("sending message from {sender} to {recipient}: {text}"
+                            .format(recipient=recipient_id, sender=sender_id, text=message_text))
 
                     try:
                         stations = message_text.split(' nach ')
@@ -105,30 +104,11 @@ def log(msg, *args, **kwargs):  # simple wrapper for logging to stdout on heroku
 
 
 @app.route("/slack/commands", methods=["POST"])
-def slack_app():
-    print(request.form)
-    # Handle a slash command invocation
-    if "command" in request.form \
-            and request.form['command'] == "/gif-ted":
-        response_url = request.form['response_url']
-        text = request.form['text']
-        slack_webhook = WebhookClient(response_url)
-        # Send a reply in the channel
-        stations = text.split(' nach ')
-        if len(stations) > 1:
-            connections = bahnconnection.connections(stations[0], stations[1])
-            # response = slack_webhook.send(text=str(connections))
-            text = 'Dein nächster Zug nach {destination} ist um {time} Uhr auf Bahnsteig {platform}. Gute Reise!'.format(
-                platform=connections['trains'][0]['platform'],
-                time=connections['trains'][0]['planned_departure'][11:16],
-                destination=connections['destination'])
-            response = slack_webhook.send(text=text)
-        else:
-            response = slack_webhook.send(text='Bitte gebe deine Anfrage in dem Muster "Bahnhof nach Bahnhof" ein.')
-        # Acknowledge this request
+def slack_webhook():
+    if slackbot.webhook(request.form):
         return make_response("", 200)
-
-    return make_response("", 404)
+    else:
+        return make_response("", 404)
 
 
 if __name__ == '__main__':
