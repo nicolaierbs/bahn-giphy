@@ -19,6 +19,7 @@ pygifsicle==1.0.2
 PyJWT==1.7.1
 pytz==2021.1
 requests==2.25.1
+requests-toolbelt==0.9.1
 six==1.15.0
 slack-sdk==3.4.2
 slackclient==2.9.3
