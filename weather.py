@@ -1,4 +1,3 @@
-import configparser
 import requests
 import os
 
@@ -11,6 +10,3 @@ def city(name):
     query_params = {'q': name, 'appid': api_key, 'units': 'metric', 'lang': 'de'}
     response = requests.get(api_url, params=query_params).json()
     return response
-
-
-print(city('Darmstadt'))

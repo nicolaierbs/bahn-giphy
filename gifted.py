@@ -1,8 +1,4 @@
-import imageio
-# from pygifsicle import optimize
 from PIL import Image, ImageDraw, ImageFont
-import time
-from datetime import datetime
 import copy
 
 font_path = 'fonts/DB Sans Regular.otf'

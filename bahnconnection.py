@@ -1,5 +1,4 @@
 import requests
-from datetime import datetime
 
 base_url = 'https://v5.db.transport.rest/'
 
