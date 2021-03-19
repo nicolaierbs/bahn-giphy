@@ -12,6 +12,7 @@ graph_url = 'https://graph.facebook.com/v{0}'.format(api_version)
 
 
 def verify_webhook(verify_token):
+    log('Challenge token')
     return verify_token == os.environ["VERIFY_TOKEN"]
 
 
