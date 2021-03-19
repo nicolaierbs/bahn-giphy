@@ -12,13 +12,11 @@ graph_url = 'https://graph.facebook.com/v{0}'.format(api_version)
 
 
 def verify_webhook(verify_token):
-    log('Challenge token')
     return verify_token == os.environ["VERIFY_TOKEN"]
 
 
 def message_webhook(data):
-    log('Received data')
-    log(data)  # you may not want to log every incoming message in production, but it's good for testing
+    # log(data)  # you may not want to log every incoming message in production, but it's good for testing
     if data["object"] == "page":
         for entry in data["entry"]:
             for messaging_event in entry["messaging"]:
@@ -27,15 +25,16 @@ def message_webhook(data):
                     sender_id = messaging_event["sender"]["id"]  # the facebook ID of the person sending you the message
                     recipient_id = messaging_event["recipient"][
                         "id"]  # the recipient's ID, which should be your page's facebook ID
-                    log(messaging_event["message"])
+                    # log(messaging_event["message"])
                     if "text" in messaging_event["message"]:
                         message_text = messaging_event["message"]["text"]  # the message's text
-                        log("sending message from {sender} to {recipient}: {text}"
+                        # log("sending message from {sender} to {recipient}: {text}"
                             .format(recipient=recipient_id, sender=sender_id, text=message_text))
 
                         try:
                             stations = message_text.split(' nach ')
                             if len(stations) == 2:
+                                log('Search connections')
                                 connections = bahnconnection.connections(stations[0], stations[1])
                                 log('Found connections: {}'.format(str(connections)))
                                 connections = bahnconnection.connections('Darmstadt', 'Frankfurt')
@@ -48,8 +47,9 @@ def message_webhook(data):
                                 log('Created gif')
                                 img = open(img_path, mode='rb').read()
                                 send_attachment(sender_id, 'image', img)
+                                log('Sent gif')
                             else:
-                                log('Send tutorial message')
+                                # log('Send tutorial message')
                                 send_message(sender_id,
                                              'Bitte gebe deine Anfrage in dem Muster "Bahnhof nach Bahnhof" ein.')
                         except KeyError:
