@@ -17,6 +17,7 @@ def verify_webhook(verify_token):
 
 
 def message_webhook(data):
+    log('Received data')
     log(data)  # you may not want to log every incoming message in production, but it's good for testing
     if data["object"] == "page":
         for entry in data["entry"]:
