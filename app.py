@@ -22,12 +22,8 @@ def facebook_verify():
 @app.route('/', methods=['POST'])
 def facebook_webhook():
     # endpoint for processing incoming messaging events
-    try:
-        data = request.get_json()
-        fbbot.message_webhook(data)
-        return "ok", 200
-    finally:
-        return "server error", 500
+    fbbot.message_webhook(request.get_json())
+    return "ok", 200
 
 
 @app.route("/slack/commands", methods=["POST"])
