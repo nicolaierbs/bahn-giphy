@@ -33,7 +33,7 @@ def message_webhook(data):
                         stations = message_text.split(' nach ')
                         if len(stations) == 2:
                             connections = bahnconnection.connections(stations[0], stations[1])
-
+                            log('Found connections: {}'.format(str(connections)))
                             connections = bahnconnection.connections('Darmstadt', 'Frankfurt')
                             img_path = gifted.create(
                                 scene='landscape-summer',
@@ -41,11 +41,11 @@ def message_webhook(data):
                                 num_frames=50,
                                 connections=connections,
                                 text='#dbregiodatahack21')
-
+                            log('Created gif')
                             img = open(img_path, mode='rb').read()
-
                             send_attachment(sender_id, 'image', img)
                         else:
+                            log('Send tutorial message')
                             send_message(sender_id,
                                          'Bitte gebe deine Anfrage in dem Muster "Bahnhof nach Bahnhof" ein.')
                     except KeyError:
@@ -119,8 +119,9 @@ def send_attachment(recipient_id, attachment_type, image_data):
     }
     multipart_data = MultipartEncoder(data)
     multipart_headers = {'Content-Type': multipart_data.content_type}
-
+    log('Start sending...')
     r = requests.post('{}/me/messages'.format(graph_url), params=params, data=multipart_data, headers=multipart_headers)
+    log('Sent')
     if r.status_code != 200:
         log(r.status_code)
         log(r.text)
