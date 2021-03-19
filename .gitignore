@@ -1,6 +1,6 @@
 .idea
 venv
-parameters.ini
+setenvs.py
 *.pyc
 xkcd-script.ttf
 .images

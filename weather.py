@@ -1,12 +1,10 @@
 import configparser
 import requests
+import os
 
-config_section = 'WEATHER'
-params = configparser.ConfigParser()
-params.read('parameters.ini')
 
-api_key = params.get(config_section, 'key')
-api_url = params.get(config_section, 'url')
+api_key = os.environ["WEATHER_API_KEY"]
+api_url = os.environ["WEATHER_API_URL"]
 
 
 def city(name):

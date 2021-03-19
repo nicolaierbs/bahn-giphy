@@ -1,5 +1,5 @@
 import imageio
-from pygifsicle import optimize
+# from pygifsicle import optimize
 from PIL import Image, ImageDraw, ImageFont
 import time
 from datetime import datetime
@@ -169,17 +169,14 @@ class GIFGenerator:
                 frame.messages = list()
             frame.messages.append(message)
 
-    def generate_gif(self, output_path="output/", file_name=None):
-        if not file_name:
-            file_name = str(int(time.time()*1000))
-        file_name += '.gif'
-
+    def generate_gif(self):
         frames = []
         for frame in self.frames:
             frames.append(frame.generate())
-        imageio.mimsave(output_path + file_name, frames)
-        optimize(output_path + file_name)
-        return output_path + file_name
+        path = 'temp.gif'
+        frames[0].save(path,
+                       save_all=True, append_images=frames[1:], optimize=True, duration=100, loop=0)
+        return path
 
 
 def rolling_train(train, num_frames):
@@ -226,7 +223,7 @@ def create(scene, train=None, num_frames=50, connections=None, text=None):
         gif.add_message(message=message, start_frame=0, num_frames=50)
         position = (300, 50)
         for connection in connections['trains']:
-            train_information = '{type} um {time} Uhr +{delay} min auf Gleis {platform}'.format(
+            train_information = '{type} {time} Uhr +{delay} min auf Gleis {platform}'.format(
                 type=connection['train'],
                 platform=connection['platform'],
                 time=connection['planned_departure'][11:16],
