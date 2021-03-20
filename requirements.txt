@@ -1,5 +1,4 @@
 aiohttp==3.7.4.post0
-async-timeout==3.0.1
 attrs==20.3.0
 certifi==2020.12.5
 chardet==4.0.0
@@ -10,20 +9,13 @@ gunicorn==20.0.4
 idna==2.10
 imageio==2.9.0
 itsdangerous==1.1.0
-Jinja2==2.11.3
 MarkupSafe==1.1.1
 multidict==5.1.0
 numpy==1.19.5
 Pillow==8.1.2
-pygifsicle==1.0.2
 PyJWT==1.7.1
 pytz==2021.1
-requests==2.25.1
-requests-toolbelt==0.9.1
 six==1.15.0
-slack-sdk==3.4.2
-slackclient==2.9.3
-twilio==6.53.0
 typing-extensions==3.7.4.3
 urllib3==1.26.3
 Werkzeug==1.0.1
