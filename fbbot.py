@@ -36,7 +36,6 @@ def message_webhook(data):
                             if len(stations) == 2:
                                 connections = bahnconnection.connections(stations[0], stations[1])
                                 log('Found connections: {}'.format(str(connections)))
-                                connections = bahnconnection.connections('Darmstadt', 'Frankfurt')
                                 img_path = gifted.create(
                                     scene='landscape-summer',
                                     train='bahn_angela',
@@ -119,7 +118,7 @@ def send_attachment(recipient_id, attachment_type, image_data):
     }
     multipart_data = MultipartEncoder(data)
     multipart_headers = {'Content-Type': multipart_data.content_type}
-    log('Start sending...')
+    log('Start sending gif')
     r = requests.post('{}/me/messages'.format(graph_url), params=params, data=multipart_data, headers=multipart_headers)
     log('Sent')
     if r.status_code != 200:
