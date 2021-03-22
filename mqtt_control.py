@@ -10,9 +10,9 @@ import gifted
 
 broker = 'mqtt.infomotion.de'
 port = 10037
-user = 'admin'
+user = ''
 # TODO Replace password
-password = '1970'
+password = ''
 
 
 def on_message(client, userdata, message):
