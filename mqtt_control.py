@@ -8,11 +8,11 @@ import cv2
 import gifted
 
 
-broker = ''
+broker = 'mqtt.infomotion.de'
 port = 10037
-user = ''
+user = 'admin'
 # TODO Replace password
-password = ''
+password = '1970'
 
 
 def on_message(client, userdata, message):
@@ -28,11 +28,13 @@ def on_message(client, userdata, message):
     open_cv_image = np.array(image)
     # Convert RGB to BGR
     open_cv_image = open_cv_image[:, :, ::-1].copy()
-    # cv2.imwrite('test.png',open_cv_image)
+    cv2.imwrite('test.jpg', open_cv_image)
     image = open_cv_image
     image_expanded = np.expand_dims(image, axis=0)
 
     # TODO Do the real cool stuff here
+
+    gifted.create(20, '#welovedata')
 
     with open('output/temp.gif', mode='rb') as file:
         img = file.read()

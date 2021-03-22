@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 import copy
 
-font_path = 'fonts/DB Sans Regular.otf'
+font_path = 'xkcd-script.ttf'
 
 ###
 #
@@ -121,7 +121,7 @@ class FrameState:
         self.foreground_objs.append(fg_obj)
 
     def generate(self):
-        font = ImageFont.truetype(font_path, 14)
+        font = ImageFont.truetype(font_path, 72)
         background = Image.open(self.background.get_file_name())
         image = background
         for fg_obj in self.foreground_objs:
@@ -175,69 +175,25 @@ class GIFGenerator:
         return path
 
 
-def rolling_train(train, num_frames):
-    # TODO This can probably be automated
-    if train == 'bahn_angela':
-        train = ImageState('images/trains/' + train + '.png', (-620, 250), num_frames=num_frames)
-        train.add_movement((610, 250), time=num_frames, start_time_delta=0, mode='linear')
-        # train.add_movement((0,20), 30, 10, mode='bounce', freq=4)
-        return train
-    elif train == 'ice_comic':
-        train = ImageState('images/trains/' + train + '.png', (-570, 170), num_frames=num_frames)
-        train.add_movement((520, 170), time=num_frames, start_time_delta=0, mode='linear')
-        return train
-    elif train == 'rb_vbb':
-        train = ImageState('images/trains/' + train + '.png', (-1200, 270), num_frames=num_frames)
-        train.add_movement((550, 270), time=num_frames, start_time_delta=0, mode='linear')
-        return train
-    elif train == 're_vbb':
-        train = ImageState('images/trains/' + train + '.png', (-2500, 270), num_frames=num_frames)
-        train.add_movement((580, 270), time=num_frames, start_time_delta=0, mode='linear')
-        return train
-    elif train == 'sbahn_vbb':
-        train = ImageState('images/trains/' + train + '.png', (-1500, 270), num_frames=num_frames)
-        train.add_movement((580, 270), time=num_frames, start_time_delta=0, mode='linear')
-        return train
-    else:
-        return None
+def starting_rocket(num_frames):
+    rocket = ImageState('images/rocket.png', (0, 600), num_frames=num_frames)
+    delta = 5
+    rocket.add_movement((0, -570), time=num_frames-delta, start_time_delta=delta, mode='linear')
+    return rocket
 
 
-def create(scene, train=None, num_frames=50, connections=None, text=None):
-    background = ImageStateFrame('images/background/' + scene + '.jpg', None)
+def create(num_frames=10, text=None):
+    background = ImageStateFrame('test.jpg', None)
     gif = GIFGenerator(gif_length=num_frames, bg=background)
 
-    gif.add_foreground_object(rolling_train(train, num_frames=num_frames), 0)
-
-    if connections:
-        table = ImageState('images/table.png', (280, 10), num_frames=num_frames)
-        gif.add_foreground_object(table, 0)
-        print(connections)
-        message = {
-            'text': connections['start'] + ' --> ' + connections['destination'],
-            'position': (290, 18),
-            'color': (255, 255, 255, 0)}
-        gif.add_message(message=message, start_frame=0, num_frames=50)
-        position = (300, 50)
-        for connection in connections['trains']:
-            train_information = '{type} {time} Uhr +{delay} min auf Gleis {platform}'.format(
-                type=connection['train'],
-                platform=connection['platform'],
-                time=connection['planned_departure'][11:16],
-                delay=connection['delay'])
-            # print(train_information)
-            message = {
-                'text': train_information,
-                'position': position,
-                'color': (255, 255, 255, 0)}
-            gif.add_message(message=message, start_frame=0, num_frames=50)
-            position = (position[0], position[1]+25)
+    gif.add_foreground_object(starting_rocket(num_frames=num_frames), 0)
 
     if text:
         message = {
             'text': text,
-            'position': (20, 20),
-            'color': (255, 30, 30, 0)
+            'position': (1200, 100),
+            'color': (255, 128, 0, 0)
                   }
-        gif.add_message(message=message, start_frame=20, num_frames=30)
+        gif.add_message(message=message, start_frame=(num_frames//2), num_frames=(num_frames//2))
 
     return gif.generate_gif()
