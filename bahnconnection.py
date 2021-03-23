@@ -25,7 +25,10 @@ def board_information(all_journeys):
         if leg['departure']:
             train = dict()
             train['planned_departure'] = leg['plannedDeparture']
-            train['delay'] = leg['departureDelay']
+            if leg['departureDelay']:
+                train['delay'] = str(int(leg['departureDelay'])//60)
+            else:
+                train['delay'] = '0'
             train['platform'] = leg['departurePlatform']
             train['train'] = leg['line']['name']
             board['trains'].append(train)
