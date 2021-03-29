@@ -12,7 +12,6 @@ def station(name):
 def journeys(start_id, destination_id):
     query_params = {'from': start_id, 'to': destination_id}
     response = requests.get(base_url + 'journeys', params=query_params).json()['journeys']
-
     return response
 
 
@@ -21,7 +20,6 @@ def board_information(all_journeys):
     board['trains'] = list()
     for leg in [journey['legs'][0] for journey in all_journeys]:
         board['start'] = leg['origin']['name']
-        board['destination'] = leg['destination']['name']
         if leg['departure']:
             train = dict()
             train['planned_departure'] = leg['plannedDeparture']
@@ -32,6 +30,11 @@ def board_information(all_journeys):
             train['platform'] = leg['departurePlatform']
             train['train'] = leg['line']['name']
             board['trains'].append(train)
+
+    # Get correct destination
+    legs = all_journeys[0]['legs']
+    board['destination'] = legs[len(legs)-1]['destination']['name']
+
     return board
 
 
@@ -39,3 +42,6 @@ def connections(start_name, destination_name):
     start_id = station(start_name)
     destination_id = station(destination_name)
     return board_information(journeys(start_id, destination_id))
+
+
+print(connections('Darmstadt', 'Offenbach'))
