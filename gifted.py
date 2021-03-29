@@ -121,7 +121,7 @@ class FrameState:
         self.foreground_objs.append(fg_obj)
 
     def generate(self):
-        font = ImageFont.truetype(font_path, 14)
+        font = ImageFont.truetype(font_path, 18)
         background = Image.open(self.background.get_file_name())
         image = background
         for fg_obj in self.foreground_objs:
@@ -209,33 +209,33 @@ def create(scene, train=None, num_frames=50, connections=None, text=None):
     gif.add_foreground_object(rolling_train(train, num_frames=num_frames), 0)
 
     if connections:
-        table = ImageState('images/table.png', (280, 10), num_frames=num_frames)
+        table = ImageState('images/table.png', (190, 10), num_frames=num_frames)
         gif.add_foreground_object(table, 0)
         print(connections)
         message = {
-            'text': connections['start'] + ' --> ' + connections['destination'],
-            'position': (290, 18),
+            'text': connections['start'] + ' -> ' + connections['destination'],
+            'position': (208, 25),
             'color': (255, 255, 255, 0)}
         gif.add_message(message=message, start_frame=0, num_frames=50)
-        position = (300, 50)
+        position = (215, 65)
         for connection in connections['trains']:
-            train_information = '{type} {time} Uhr +{delay} min auf Gleis {platform}'.format(
+            train_information = '{type:8} {time:5} Uhr +{delay:2d} min auf Gleis{platform:2d}'.format(
                 type=connection['train'],
-                platform=connection['platform'],
+                platform=int(connection['platform']),
                 time=connection['planned_departure'][11:16],
-                delay=connection['delay'])
+                delay=int(connection['delay']))
             # print(train_information)
             message = {
                 'text': train_information,
                 'position': position,
                 'color': (255, 255, 255, 0)}
             gif.add_message(message=message, start_frame=0, num_frames=50)
-            position = (position[0], position[1]+25)
+            position = (position[0], position[1]+32)
 
     if text:
         message = {
             'text': text,
-            'position': (20, 20),
+            'position': (20, 370),
             'color': (255, 30, 30, 0)
                   }
         gif.add_message(message=message, start_frame=20, num_frames=30)

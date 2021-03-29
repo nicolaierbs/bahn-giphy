@@ -9,10 +9,10 @@ def station(name):
     return response[0]['id']
 
 
-def journeys(start_id, destination_id):
+def journeys(start_id, destination_id, max_journeys=3):
     query_params = {'from': start_id, 'to': destination_id}
     response = requests.get(base_url + 'journeys', params=query_params).json()['journeys']
-    return response
+    return response[:min(max_journeys, len(response))]
 
 
 def board_information(all_journeys):
