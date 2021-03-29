@@ -42,6 +42,3 @@ def connections(start_name, destination_name):
     start_id = station(start_name)
     destination_id = station(destination_name)
     return board_information(journeys(start_id, destination_id))
-
-
-print(connections('Darmstadt', 'Offenbach'))
